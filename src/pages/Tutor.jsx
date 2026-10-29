@@ -1,16 +1,41 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Routes, Route, Navigate } from 'react-router-dom'
+import { Link, Routes, Route, Navigate } from 'react-router-dom'
 import { supabase, STATUS, LOGIN_DOMAIN, youtubeId } from '../supabase.js'
+import { useAuth, TopBar } from '../App.jsx'
+import Icon from '../icons.jsx'
+import { Avatar, Skeleton, timeAgo, useToast, plural } from '../ui.jsx'
+
+function TutorHero() {
+  const { profile, pending } = useAuth()
+  const [s, setS] = useState({ students: 0, groups: 0, accepted: 0 })
+  useEffect(() => {
+    (async () => {
+      const head = { count: 'exact', head: true }
+      const [st, gr, ac] = await Promise.all([
+        supabase.from('profiles').select('id', head).eq('role', 'student'),
+        supabase.from('groups').select('id', head),
+        supabase.from('submissions').select('id', head).eq('status', 'accepted'),
+      ])
+      setS({ students: st.count || 0, groups: gr.count || 0, accepted: ac.count || 0 })
+    })()
+  }, [])
+  return (
+    <div className="fade-up">
+      <TopBar />
+      <div className="tstats">
+        <div className="tstat y"><b>{pending}</b><span>{plural(pending, 'работа ждёт', 'работы ждут', 'работ ждут')} проверки</span></div>
+        <div className="tstat"><b>{s.students}</b><span>учеников</span></div>
+        <div className="tstat"><b>{s.groups}</b><span>групп</span></div>
+        <div className="tstat"><b>{s.accepted}</b><span>принято работ</span></div>
+      </div>
+    </div>
+  )
+}
 
 export default function Tutor() {
   return (
     <>
-      <nav className="tabs">
-        <NavLink to="/tutor/submissions">📥 Работы</NavLink>
-        <NavLink to="/tutor/lessons">📚 Уроки</NavLink>
-        <NavLink to="/tutor/students">🧑‍🚀 Ученики</NavLink>
-        <NavLink to="/tutor/groups">👥 Группы</NavLink>
-      </nav>
+      <TutorHero />
       <Routes>
         <Route path="submissions" element={<Submissions />} />
         <Route path="lessons" element={<Lessons />} />
@@ -65,36 +90,50 @@ function Submissions() {
         </select>
       </div>
       <Err e={err} />
-      {rows?.length === 0 && <p className="muted">Пусто 🎉</p>}
+      {!rows && <div className="stack">{[0, 1, 2].map((i) => <Skeleton key={i} h={150} />)}</div>}
+      {rows?.length === 0 && <div className="card empty"><span className="big-ico"><Icon name="check" size={34} /></span><p>Здесь пусто — всё проверено!</p></div>}
       {rows?.map((r) => <SubmissionRow key={r.id} r={r} onDone={load} />)}
     </section>
   )
 }
 
 function SubmissionRow({ r, onDone }) {
+  const { refreshPending } = useAuth()
+  const toast = useToast()
   const [comment, setComment] = useState(r.tutor_comment || '')
   const [score, setScore] = useState(r.score ?? '')
   const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+  const name = r.profiles.full_name || r.profiles.login
   const save = async (newStatus) => {
+    setBusy(true)
     const { error } = await supabase.from('submissions').update({
       status: newStatus, tutor_comment: comment || null, score: score === '' ? null : Number(score),
     }).eq('id', r.id)
-    if (error) setErr(error.message); else onDone()
+    setBusy(false)
+    if (error) { setErr(error.message); return }
+    toast(newStatus === 'accepted' ? `Работа ${name} принята ✅` : `${name}: отправлено на доработку`)
+    refreshPending(); onDone()
   }
   return (
-    <div className="card sub-row">
+    <div className={`card sub-row st-${r.status} fade-up`}>
+      <span className="st-bar" />
       <div className="sub-head">
-        <b>{r.profiles.full_name || r.profiles.login}</b>
-        <span className="muted">{r.lessons?.modules?.title} → {r.lessons?.title}</span>
+        <Avatar name={name} />
+        <div className="who">
+          <b>{name}</b>
+          <span>{r.lessons?.modules?.title} → <Link to={`/lesson/${r.lesson_id}`}>{r.lessons?.title}</Link></span>
+        </div>
         <span className={`badge ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
+        <span className="when">{timeAgo(r.updated_at)}</span>
       </div>
-      <a href={r.project_url} target="_blank" rel="noreferrer" className="break">{r.project_url} ↗</a>
-      {r.comment && <p className="pre">🗨 {r.comment}</p>}
+      <a href={r.project_url} target="_blank" rel="noreferrer" className="project"><Icon name="link" size={18} /> Открыть проект <span>{r.project_url}</span></a>
+      {r.comment && <p className="pre stu-comment">{r.comment}</p>}
       <div className="row">
         <input placeholder="Комментарий ученику" value={comment} onChange={(e) => setComment(e.target.value)} />
         <input className="w80" type="number" min="0" max="100" placeholder="Баллы" value={score} onChange={(e) => setScore(e.target.value)} />
-        <button className="btn btn-primary" onClick={() => save('accepted')}>Принять</button>
-        <button className="btn btn-ghost" onClick={() => save('revision')}>На доработку</button>
+        <button className="btn btn-primary" disabled={busy} onClick={() => save('accepted')}>Принять</button>
+        <button className="btn btn-ghost" disabled={busy} onClick={() => save('revision')}>На доработку</button>
       </div>
       <Err e={err} />
     </div>
@@ -137,7 +176,7 @@ function Lessons() {
         </select>
         <form onSubmit={addModule} className="row">
           <input placeholder="Новый модуль, напр. «Roblox Studio»" value={newModule} onChange={(e) => setNewModule(e.target.value)} required />
-          <button className="btn btn-primary">+ Модуль</button>
+          <button className="btn btn-dark">+ Модуль</button>
         </form>
       </div>
       <Err e={err} />
@@ -172,7 +211,7 @@ function ModuleEditor({ m, onChange }) {
       {m.lessons.map((l) => <LessonEditor key={l.id} l={l} moduleId={m.id} onChange={onChange} />)}
       {adding
         ? <LessonEditor moduleId={m.id} position={m.lessons.length + 1} onChange={() => { setAdding(false); onChange() }} onCancel={() => setAdding(false)} />
-        : <button className="btn btn-yellow" onClick={() => setAdding(true)}>+ Урок</button>}
+        : <button className="btn btn-dark" style={{ marginTop: '.6rem' }} onClick={() => setAdding(true)}>+ Урок</button>}
     </div>
   )
 }
@@ -210,7 +249,7 @@ function LessonEditor({ l, moduleId, position, onChange, onCancel }) {
       <div className="lesson-line">
         <span className="num">{l.position}</span>
         <span className="grow">{l.title} {!l.published && <em className="muted">(черновик)</em>}</span>
-        <span className="icons">{l.youtube_url && '🎬'}{l.materials_url && '📁'}{l.task && '🎯'}</span>
+        <span className="icons">{l.youtube_url && <Icon name="play" size={16} />}{l.materials_url && <Icon name="folder" size={18} />}{l.task && <Icon name="target" size={18} />}</span>
         <Link to={`/lesson/${l.id}`} className="btn btn-ghost sm">Просмотр</Link>
         <button className="btn btn-ghost sm" onClick={() => setOpen(true)}>Изменить</button>
       </div>
@@ -284,12 +323,13 @@ function Students() {
         </select>
       </div>
       <Err e={err} />
+      <div className="table-wrap">
       <table className="table">
-        <thead><tr><th>Логин</th><th>Имя</th><th>Группа</th><th>Роль</th><th>Работы</th></tr></thead>
+        <thead><tr><th>Логин</th><th>Имя</th><th>Группа</th><th>Роль</th><th>Принято / сдано</th></tr></thead>
         <tbody>
           {shown.map((r) => (
             <tr key={r.id}>
-              <td><code>{r.login}</code></td>
+              <td><span className="person"><Avatar name={r.full_name || r.login} /><code>{r.login}</code></span></td>
               <td><NameCell r={r} onSave={(full_name) => update(r.id, { full_name })} /></td>
               <td>
                 <select value={r.group_id || ''} onChange={(e) => update(r.id, { group_id: e.target.value ? Number(e.target.value) : null })}>
@@ -303,11 +343,16 @@ function Students() {
                   <option value="tutor">тьютор</option>
                 </select>
               </td>
-              <td>{stats[r.id] ? `${stats[r.id].accepted} / ${stats[r.id].total}` : '—'}</td>
+              <td>
+                {stats[r.id]
+                  ? <span className="mini-prog"><span className="progress"><div style={{ width: `${(stats[r.id].accepted / stats[r.id].total) * 100}%` }} /></span>{stats[r.id].accepted}/{stats[r.id].total}</span>
+                  : <span className="muted">—</span>}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </section>
   )
 }
@@ -320,6 +365,14 @@ function NameCell({ r, onSave }) {
 /* ------------------------- Группы ------------------------- */
 function Groups() {
   const [groups, reload] = useGroups()
+  const [counts, setCounts] = useState({})
+  useEffect(() => {
+    supabase.from('profiles').select('group_id').eq('role', 'student').then(({ data }) => {
+      const c = {}
+      for (const p of data || []) if (p.group_id) c[p.group_id] = (c[p.group_id] || 0) + 1
+      setCounts(c)
+    })
+  }, [groups])
   const [name, setName] = useState('')
   const [schedule, setSchedule] = useState('')
   const [err, setErr] = useState('')
@@ -344,13 +397,15 @@ function Groups() {
       <form className="card row" onSubmit={add}>
         <input className="grow" placeholder="Название, напр. «Средняя · сб 12–14»" value={name} onChange={(e) => setName(e.target.value)} required />
         <input className="grow" placeholder="Расписание (необязательно)" value={schedule} onChange={(e) => setSchedule(e.target.value)} />
-        <button className="btn btn-primary">+ Группа</button>
+        <button className="btn btn-dark">+ Группа</button>
       </form>
       <Err e={err} />
       {groups.map((g) => (
-        <div key={g.id} className="card row">
+        <div key={g.id} className="card group-card">
+          <span className="gico"><Icon name="users" size={22} /></span>
           <input className="grow strong" defaultValue={g.name} onBlur={(e) => e.target.value !== g.name && save(g, { name: e.target.value })} />
           <input className="grow" defaultValue={g.schedule || ''} placeholder="Расписание" onBlur={(e) => e.target.value !== (g.schedule || '') && save(g, { schedule: e.target.value || null })} />
+          <span className="cnt">{counts[g.id] || 0} {plural(counts[g.id] || 0, 'ученик', 'ученика', 'учеников')}</span>
           <button className="btn btn-danger" onClick={() => del(g)}>Удалить</button>
         </div>
       ))}

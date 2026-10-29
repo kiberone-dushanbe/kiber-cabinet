@@ -14,3 +14,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </HashRouter>
   </React.StrictMode>
 )
+
+// PWA: регистрируем service worker только в собранной версии (в dev он мешает горячей перезагрузке)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}))
+}
