@@ -1,0 +1,33 @@
+name: Supabase keep-alive
+
+# Каждые 2 дня делает запрос к базе, чтобы бесплатный проект Supabase не засыпал
+on:
+  schedule:
+    - cron: '17 3 */2 * *'   # 03:17 UTC (08:17 Душанбе) каждые 2 дня
+  workflow_dispatch:
+
+permissions:
+  actions: write   # чтобы продлевать сам себя (GitHub отключает расписания после 60 дней без коммитов)
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          for i in 1 2 3; do
+            code=$(curl -s -o /tmp/out -w '%{http_code}' -X POST \
+              "${{ vars.VITE_SUPABASE_URL }}/rest/v1/rpc/ping" \
+              -H "apikey: ${{ vars.VITE_SUPABASE_ANON_KEY }}" \
+              -H "Content-Type: application/json" -d '{}')
+            echo "Попытка $i: HTTP $code, ответ: $(cat /tmp/out)"
+            [ "$code" = "200" ] && exit 0
+            sleep 30
+          done
+          echo "::error::Supabase не отвечает — возможно, проект на паузе. Откройте supabase.com и нажмите Restore."
+          exit 1
+
+      - name: Keep this workflow enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable keepalive.yml --repo "${{ github.repository }}" || true
