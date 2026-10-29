@@ -12,6 +12,7 @@ import Lesson from './pages/Lesson.jsx'
 import Works from './pages/Works.jsx'
 import Tutor from './pages/Tutor.jsx'
 import Check from './pages/Check.jsx'
+import { useMedia, useLearning, SideLearning } from './sidebar.jsx'
 
 const AuthCtx = createContext(null)
 export const useAuth = () => useContext(AuthCtx)
@@ -56,7 +57,7 @@ export function Logo({ text = 'личный кабинет' }) {
   )
 }
 
-function navItems(profile, pending) {
+function navItems(profile, pending, revision) {
   if (profile?.role === 'tutor') {
     return [
       { to: '/tutor/submissions', icon: 'inbox', label: 'Работы', count: pending },
@@ -69,24 +70,44 @@ function navItems(profile, pending) {
     { to: '/', icon: 'home', label: 'Главная', end: true },
     { to: '/balance', icon: 'kiberon', label: 'Баланс' },
     { to: '/shop', icon: 'basket', label: 'КИБЕРшоп' },
-    { to: '/news', icon: 'megaphone', label: <>Новости<br />и акции</> },
+    { to: '/news', icon: 'megaphone', label: <>Новости <br />и акции</> },
     { to: '/payment', icon: 'wallet', label: 'Оплата' },
+    // только в боковом меню: на телефоне «Мои работы» — в быстрых кнопках главной
+    { to: '/works', icon: 'doc', label: 'Мои работы', count: revision, deskOnly: true },
   ]
 }
 
-/** Чёрная нижняя панель, как в приложении */
+/** Телефон и планшет — чёрная нижняя панель, как в приложении.
+    Ноутбук (от 1100px) — та же навигация становится боковым меню с логотипом и контактами. */
 function TabBar() {
   const { profile, pending } = useAuth()
+  const desktop = useMedia('(min-width: 1100px)')
+  const isTutor = profile?.role === 'tutor'
+  const learning = useLearning(desktop && profile && !isTutor)
   if (!profile) return null
   return (
     <nav className="tabbar" aria-label="Разделы">
-      {navItems(profile, pending).map((i) => (
-        <NavLink key={i.to} to={i.to} end={i.end}>
+      <div className="side-only side-logo"><Logo text="" /></div>
+      {navItems(profile, pending, learning?.revision).map((i) => (
+        <NavLink key={i.to} to={i.to} end={i.end} className={i.deskOnly ? 'desk-only' : undefined} title={i.deskOnly && i.count ? 'Есть работы на доработку' : undefined}>
           <Icon name={i.icon} size={26} stroke={1.4} />
           <span>{i.label}</span>
           {i.count > 0 && <span className="count">{i.count}</span>}
         </NavLink>
       ))}
+      {!isTutor && desktop && <SideLearning data={learning} profile={profile} />}
+      {!isTutor && (
+        <div className="side-only side-foot">
+          <span>Связаться с KIBERone</span>
+          <div className="side-contacts">
+            {CONTACTS.map((c) => (
+              <a key={c.icon} href={c.href} target="_blank" rel="noreferrer" title={c.label} aria-label={c.label}>
+                <Icon name={c.icon} size={20} stroke={1.6} />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

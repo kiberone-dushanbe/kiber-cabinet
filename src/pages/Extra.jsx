@@ -45,6 +45,7 @@ export function Banners() {
         {DEMO_BANNERS.map((b) => (
           <Link key={b.id} to="/news" className={`banner tone-${b.tone}`}>
             <span className="blob" />
+            {b.img && <img src={b.img} alt="" className="banner-img" loading="lazy" />}
             <img src={logoMark} alt="" className="logo-img" />
             <span className="t">{b.title.split(' ').map((w) => <span key={w}>{w}</span>)}</span>
             <span className="s">{b.sub}</span>
@@ -148,7 +149,9 @@ export function News() {
             <span className="pill grey">{fmtDate(n.date)}</span>
             <div className="body">
               <b>{n.title}</b>
-              <div className={`thumb tone-${n.tone}`}><img src={logoMark} alt="" className="logo-img" /></div>
+              <div className={`thumb tone-${n.tone}`}>
+                {n.img ? <img src={n.img} alt="" className="thumb-img" loading="lazy" /> : <img src={logoMark} alt="" className="logo-img" />}
+              </div>
             </div>
             <details>
               <summary>Узнать подробности <Icon name="chevronDown" /></summary>

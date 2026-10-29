@@ -2,6 +2,15 @@ import { useState } from 'react'
 import { supabase, loginToEmail } from '../supabase.js'
 import logoMark from '../assets/kiber-logo-mark.svg'
 import logoFull from '../assets/kiber-logo.svg'
+import { STATS, AWARD_LOGOS, PARENTS } from '../kiberone.js'
+
+function MiniStats() {
+  return (
+    <ul className="mini-stats">
+      {STATS.map((s) => <li key={s.label}><b>{s.value}</b><span>{s.label}</span></li>)}
+    </ul>
+  )
+}
 
 export default function Login() {
   const [login, setLogin] = useState('')
@@ -38,6 +47,11 @@ export default function Login() {
             <li>Сдавай задания и получай баллы</li>
             <li>Ответы тьютора и прогресс по модулю</li>
           </ul>
+          <MiniStats />
+          <p className="parents">{PARENTS}</p>
+          <div className="award-logos">
+            {AWARD_LOGOS.map((l) => <img key={l.alt} src={l.img} alt={l.alt} title={l.alt} />)}
+          </div>
         </div>
       </aside>
 
@@ -63,6 +77,10 @@ export default function Login() {
           {error && <div className="error">{error}</div>}
           <button className="btn btn-primary big" disabled={busy}>{busy ? 'Входим…' : 'Войти'}</button>
           <p className="muted small help">Забыл пароль? Напиши своему тьютору.</p>
+          <div className="login-mobile-stats">
+            <MiniStats />
+            <p className="muted small">{PARENTS}</p>
+          </div>
         </form>
       </div>
     </div>
