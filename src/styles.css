@@ -1,0 +1,158 @@
+/* KIBERone: бирюзовый + жёлтый на белом. Шрифт PF BeauSans Pro заменён на Fira Sans (хранится локально, без Google Fonts) */
+:root {
+  --teal: #05B9BE;
+  --teal-dark: #1C556E;
+  --yellow: #F7C90E;
+  --red: #92241F;
+  --gray: #9C9C9C;
+  --text: #231F20;
+  --bg: #F6FAFB;
+  --line: #E3ECEE;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: 'Fira Sans', system-ui, sans-serif; font-size: 16px; line-height: 1.5;
+}
+a { color: var(--teal-dark); }
+h1, h2 { margin: 0 0 .5em; line-height: 1.2; }
+h1 { font-weight: 800; font-size: 1.8rem; }
+code { background: #EEF6F7; padding: 1px 6px; border-radius: 6px; }
+.muted { color: #6b7375; }
+.small { font-size: .875rem; }
+.pre { white-space: pre-wrap; }
+.break { word-break: break-all; }
+.center { text-align: center; padding: 3rem; }
+
+/* header */
+.header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  background: #fff; padding: .75rem 1.5rem; border-bottom: 3px solid var(--yellow);
+}
+.logo { text-decoration: none; font-weight: 800; font-size: 1.5rem; letter-spacing: .02em; display: flex; align-items: baseline; }
+.logo .k { color: var(--teal); } .logo .i { color: var(--yellow); } .logo .b { color: var(--red); }
+.logo .e { color: var(--gray); } .logo .r { color: var(--teal-dark); } .logo .one { color: var(--text); }
+.logo small { font-weight: 400; font-size: .85rem; color: var(--gray); margin-left: .6rem; letter-spacing: 0; }
+.header-right { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.me em { color: var(--gray); font-style: normal; }
+
+.page { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
+.footer { text-align: center; color: var(--gray); font-size: .85rem; padding: 2rem; }
+
+/* cards + фирменный диагональный угол */
+.card {
+  position: relative; overflow: hidden; background: #fff; border-radius: var(--radius);
+  padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(28, 85, 110, .08);
+}
+.corner {
+  position: absolute; top: 0; right: 0; width: 90px; height: 90px;
+  background: linear-gradient(225deg, var(--yellow) 50%, transparent 50%);
+}
+.plate {
+  display: inline-block; background: var(--teal); color: #fff; padding: .35rem 1rem;
+  border-radius: 8px; font-size: 1.2rem;
+}
+
+/* buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .4rem;
+  border: 0; border-radius: 10px; padding: .6rem 1.1rem; font: inherit; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: transform .1s, filter .15s;
+}
+.btn:hover { filter: brightness(1.05); } .btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .6; cursor: default; }
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-yellow { background: var(--yellow); color: var(--text); }
+.btn-ghost { background: #EEF6F7; color: var(--teal-dark); }
+.btn-danger { background: #fbeaea; color: var(--red); }
+.btn.big { padding: .9rem 1.4rem; font-size: 1.05rem; margin: 1rem 0; }
+.btn.sm { padding: .3rem .7rem; font-size: .85rem; }
+
+/* forms */
+input, textarea, select {
+  font: inherit; padding: .55rem .75rem; border: 1.5px solid var(--line); border-radius: 10px;
+  background: #fff; width: 100%; color: var(--text);
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--teal); }
+label { display: block; font-weight: 600; font-size: .9rem; }
+label input, label textarea { margin-top: .3rem; font-weight: 400; }
+label.check { display: flex; align-items: center; gap: .4rem; white-space: nowrap; }
+label.check input { width: auto; margin: 0; }
+.stack > * + * { margin-top: .8rem; }
+.row { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.row > input, .row > select { width: auto; flex: 1 1 160px; }
+.grow { flex: 1 1 200px !important; } .w60 { max-width: 70px; flex: 0 0 70px !important; } .w80 { max-width: 100px; flex: 0 0 100px !important; }
+.strong { font-weight: 600; }
+.error { background: #fbeaea; color: var(--red); padding: .6rem .9rem; border-radius: 10px; margin: .6rem 0; }
+.note { background: #e6f8f8; color: var(--teal-dark); padding: .6rem .9rem; border-radius: 10px; margin: .6rem 0; }
+
+/* login */
+.login-wrap { display: grid; place-items: center; min-height: 70vh; }
+.login { width: 100%; max-width: 400px; padding: 2rem; }
+.login > * + * { margin-top: 1rem; }
+.login h1 { padding-right: 60px; }
+.login .btn { width: 100%; }
+
+/* home */
+.hero h1 { padding-right: 80px; }
+.stats { display: flex; gap: 2rem; flex-wrap: wrap; margin: .5rem 0 1rem; }
+.stats b { display: block; font-size: 1.8rem; color: var(--teal); }
+.stats span { color: var(--gray); font-size: .9rem; }
+.progress { height: 12px; background: #EEF6F7; border-radius: 99px; overflow: hidden; }
+.progress div { height: 100%; background: linear-gradient(90deg, var(--teal), var(--yellow)); transition: width .4s; }
+.module { margin: 2rem 0; }
+.lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; margin-top: .8rem; }
+.lesson-card {
+  display: flex; flex-direction: column; gap: .4rem; background: #fff; border-radius: var(--radius);
+  padding: 1rem; text-decoration: none; color: var(--text); border: 2px solid transparent;
+  box-shadow: 0 1px 3px rgba(28, 85, 110, .08); transition: border-color .15s, transform .15s;
+}
+.lesson-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+.lesson-card .title { font-weight: 600; }
+.num {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--yellow); font-weight: 800; font-size: .9rem; flex: 0 0 30px;
+}
+
+.badge { display: inline-block; padding: .15rem .6rem; border-radius: 99px; font-size: .78rem; font-weight: 600; width: fit-content; }
+.badge-ok { background: #e2f6e9; color: #1d7a44; }
+.badge-wait { background: #fff5cf; color: #8a6d00; }
+.badge-fix { background: #fbeaea; color: var(--red); }
+.badge-todo { background: #e6f8f8; color: var(--teal-dark); }
+
+/* lesson */
+.back { display: inline-block; margin-bottom: 1rem; text-decoration: none; font-weight: 600; }
+.video { position: relative; padding-top: 56.25%; border-radius: var(--radius); overflow: hidden; background: #000; margin: 1rem 0 .4rem; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.task { margin-top: 1rem; border-left: 6px solid var(--teal); }
+.task h2 { padding-right: 70px; }
+.sub-status { margin: .8rem 0; }
+.tutor-comment { margin-top: .5rem; background: #fff9e3; padding: .6rem .9rem; border-radius: 10px; }
+
+/* tutor */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.tabs a { padding: .55rem 1rem; border-radius: 10px; text-decoration: none; font-weight: 600; background: #fff; color: var(--teal-dark); }
+.tabs a.active { background: var(--teal); color: #fff; }
+.toolbar { display: flex; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.toolbar > select { width: auto; }
+.toolbar form { flex: 1; }
+.sub-head { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin-bottom: .4rem; }
+.sub-row .row { margin-top: .7rem; }
+.module-edit > .row { margin-bottom: .8rem; }
+.lesson-line { display: flex; align-items: center; gap: .6rem; padding: .5rem 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.lesson-line .icons { letter-spacing: .2em; }
+.lesson-form { display: grid; gap: .6rem; background: #F6FAFB; padding: 1rem; border-radius: 10px; margin: .6rem 0; }
+.hint { background: #fffbe9; }
+.table { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius); overflow: hidden; }
+.table th, .table td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.table th { background: var(--teal); color: #fff; font-weight: 600; }
+.table select, .table input { padding: .35rem .5rem; }
+.check h1 { padding-right: 80px; }
+.check .table { margin: 1rem 0; }
+
+@media (max-width: 640px) {
+  .page { padding: 1rem; }
+  .header { padding: .6rem 1rem; }
+  .table { display: block; overflow-x: auto; }
+}
